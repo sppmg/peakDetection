@@ -18,33 +18,32 @@ First use my data to demo. It's similar harmonic with a small 60 Hz power noise.
 ```py
 p = PeakDetector(d1[1], pd = 100)
 ```
-![d1][./doc/img/d1_pd=100_ph=0.3.png]
+![d1](doc/img/d1_pd=100_ph=0.3.png)
 
 It's can easy get small peak in left part.
 
-![d1][./doc/img/d1_pd=1000_ph=0.05.png]
+![d1](doc/img/d1_pd=1000_ph=0.05.png)
 
-![d1][./doc/img/d1_pd=1000_ph=0.05_1.png]
+![d1](doc/img/d1_pd=1000_ph=0.05_1.png)
 
 2nd example use a little sharp wave.
 It's an audio signal from MATLAB's mtlb(1001:1200).
-MATLAB's findpeaks result in 
-https://www.mathworks.com/help/signal/ref/findpeaks.html#bufhyo1-2
+MATLAB's findpeaks result in [findpeaks help page](https://www.mathworks.com/help/signal/ref/findpeaks.html#bufhyo1-2).
 
 And my result:
 
-![d2][./doc/img/d2_pd=10_ph=2.png]
+![d2](doc/img/d2_pd=10_ph=2.png)
 
 3rd and 4th example use a very sharp wave, ECG.
 
-![d5][./doc/img/d5_pd=5_ph=200.png]
+![d5](doc/img/d5_pd=5_ph=200.png)
 
 4th is an arrhythmic ECG from MIT-BIH Arrhythmia Database. It's has nonstationary meaning, that's why I create this program.
 
-![d6][./doc/img/d6_pd=5_ph=250.png]
+![d6](doc/img/d6_pd=5_ph=250.png)
 
-MATLAB use it to demo how to use wavelet analyze ECG:
-https://www.mathworks.com/help/wavelet/ug/r-wave-detection-in-the-ecg.html
+MATLAB use it to demo [how to use wavelet analyze ECG]
+(https://www.mathworks.com/help/wavelet/ug/r-wave-detection-in-the-ecg.html)
 
 
 ## License
