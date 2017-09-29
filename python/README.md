@@ -61,7 +61,7 @@ It will return a object. If you give data, the result will save in it's attribut
 ### Get result
 
 There are two method, `.get()` may remove later.
-(If you feel it batter, talk to me or give me a issue.)
+(If you feel it better, talk to me or give me a issue.)
 
 #### Use attributes
 
@@ -123,6 +123,10 @@ If you see a clear local maximum but `PeakDetector` can't grab it, try to
 decrease `pd`.
 
 # Demo: threshold
+
+## Without threshold
+
+![d1 Without threshold](../doc/img/d01_pd=1000_ph=0.05.png)
 
 ## Minimum for max and min
 
