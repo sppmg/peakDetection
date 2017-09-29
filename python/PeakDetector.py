@@ -1,11 +1,37 @@
 import numpy as np
-#from scipy import stats
 import time
-
+#from scipy import stats
 
 class PeakDetector():
-            
-    def __init__(self, *args, pd = 10, ph = False, th= False, adp = False ,
+    """ A peak detect object base on local maximum and local minimum.
+
+    This module will analyse extrema (local maximum and local minimum) from
+    input data, you can apply fliters by give vaild argument.
+    
+    
+    Args:
+        *args   - for data, a 1D array/list (Only use args[0] for data).
+        pd      - Peak Distance. The minimum distance of same type extrema (eg.
+                max with max).
+        ph      - Peak Height relatively. It's difference height of neighboring
+                opposite extrema (eg. max with min).
+                Ignore or set to False to turn off this option.
+        th      - Threshold. It's absolute height of peak. Can be a number,
+                2 element array/list or 2D array/list with 4 element.
+                Ignore or set to False to turn off this option.
+                
+    Args, didn't finish(for developer):
+        adp     - Adaptive, Adapt pd, ph ,etc.
+
+    Attributes (public):
+        analyseTime - log time of peak detection without filters consumption.
+
+    Attributes (private):
+        flt_*   - * can be pd, ph, th, etc. record all filter.
+        
+    """
+    
+    def __init__(self, *args, pd = 2, ph = False, th= False, adp = False ,
         measureTime = True ):
         #if th :
         try :
@@ -45,15 +71,15 @@ class PeakDetector():
             print("Relatively height setting error!")
         #else
             
-        self.flt_pd = pd # minimum distance of peak round(0.1*rate)
-        ##self.flt_ph = np.array(ph) # relatively height of peak and around local minimum
+        self.flt_pd = int(pd) if pd > 0 else 1      # minimum distance of peak
+        ##self.flt_ph = np.array(ph)                # relative height of peak
         self.time = []     # a narray
-        self.data = np.array(args[0]) if len(args) > 0 else np.array([])     # a narray
+        self.data = np.array(args[0]) if len(args) > 0 else np.array([])
         self.extr = {'min': [] , 'max': []} # local_max (peaks) only index
         
         self.extr_rm = {'min':[] ,'max':[]}
         
-        self.analyseTime = 0  # for dev , analyse() used time
+        self.analyseTime = 0  # for dev , analyse() consume time.
         self.adp = adp
         self.log_flt_pd = []
         self.log_flt_ph = []
@@ -75,6 +101,8 @@ class PeakDetector():
             self.analyse()
     
     def analyse(self):
+        """ Peak detect function. only call from class members. """
+        
         if self.measureTime :
             self.analyseTime = time.monotonic()
         if self.adp :
@@ -220,7 +248,9 @@ class PeakDetector():
             self.analyseTime = time.monotonic() - self.analyseTime
 
     def adaptive(self, find_max,n) :
-        #pass
+        """ adapt pd, ph ,etc. """
+        
+        return # didn't finish
         # may use ordinary least squares
         
         
@@ -267,27 +297,42 @@ class PeakDetector():
             
         
     def update(self, data) :
-        # 
+        """ Renew data and call analyse. """
+        
         # check data type
         if len(data) > 0 :
-            self.data = data
+            self.data = np.array(data)
             self.analyse()
     def append(self, data) :
-        # append new data
+        """ Append new data to original data.
+
+        This method didn't finish, so disibled.
+        """
         if len(data) > 0 :
             pass
 
     def clear(self) :
-        # clear data in object
+        """ clear data in object.
+
+        Actually, it's reinitialize object to default setting,
+        include .data and filters.
+        """
         self.__init__()
 
     def get(self, act='max.v') :
-        # Get peaks api
+        """ Get peak detection result.
+
+        Arg :       A string. Vaild string please check code or manual.
+        Return :    1D numpy array. Content depend on arg.
+        """
+
         case = {
             'orig.max.i' : lambda : self.extr['max'] ,
             'orig.min.i' : lambda : self.extr['min'] ,
-            'rm.max'     : lambda : self.extr_rm['max'] ,
-            'rm.min'     : lambda : self.extr_rm['min'] ,
+            'rm.max.i'   : lambda : self.extr_rm['max'] ,
+            'rm.max.v'   : lambda : self.data[self.extr_rm['max']] ,
+            'rm.min.i'   : lambda : self.extr_rm['min'] ,
+            'rm.min.v'   : lambda : self.data[self.extr_rm['min']] ,
             'max.i'      : lambda : np.setdiff1d(self.extr['max'], self.extr_rm['max']),
             'max.v'      : lambda : self.data[np.setdiff1d(self.extr['max'], self.extr_rm['max'])],
             'min.i'      : lambda : np.setdiff1d(self.extr['min'], self.extr_rm['min']),
