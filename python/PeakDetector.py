@@ -6,7 +6,7 @@ class PeakDetector():
     """ A peak detect object base on local maximum and local minimum.
 
     This module will analyse extrema (local maximum and local minimum) from
-    input data, you can apply fliters by give vaild argument.
+    input data, you can apply filters by give vaild argument.
     
     
     Args:
@@ -24,7 +24,7 @@ class PeakDetector():
         adp     - Adaptive, Adapt pd, ph ,etc.
 
     Attributes (public):
-        analyseTime - log time of peak detection without filters consumption.
+        analyseTime - log time of peak detection with filters consumption.
 
     Attributes (private):
         flt_*   - * can be pd, ph, th, etc. record all filter.
@@ -33,32 +33,22 @@ class PeakDetector():
     
     def __init__(self, *args, pd = 2, ph = False, th= False, adp = False ,
         measureTime = True ):
-        #if th :
-        try :
-            if not th :
-                self.threshold = False
-            elif np.ndim(th) == 0 :
-                # only one number, so min of all extrema
-                self.threshold = [
-                    [th, np.Inf],
-                    [th, np.Inf]]
-            elif np.ndim(th) == 1:
-                # min and max of all extrema
-                self.threshold = [
-                    [th[0], th[1]],
-                    [th[0], th[1]]]
-            elif np.ndim(th) == 2:
-                # min and max of each type extrema
-                self.threshold = [
-                    [th[0][0], th[0][1]],
-                    [th[0][1], th[1][1]]]
-        except:
-            self.threshold = False
-            print("Threshold dimension error!")
-        #else :
-            #self.threshold = []
+            
+        self.time = []     # a narray
+        self.data = np.array(args[0]) if len(args) > 0 else np.array([])
+        
+        self.extr = {'min': [] , 'max': []} # index of data for extrema
+        self.extr_rm = {'min':[] ,'max':[]} # index of data for removed extrema
+        
+        self.analyseTime = 0  # for dev , analyse() consume time.
+        self.measureTime = measureTime
+        
+        self.adp = adp
 
-        #if ph :
+        # filter - pd - Peak Distance
+        self.flt_pd = int(pd) if pd > 0 else 1      # minimum distance of peak
+
+        # Filter - ph - relative Peak Height
         try :
             if not ph :
                 self.flt_ph = False
@@ -69,29 +59,41 @@ class PeakDetector():
         except :
             self.flt_ph = False
             print("Relatively height setting error!")
-        #else
-            
-        self.flt_pd = int(pd) if pd > 0 else 1      # minimum distance of peak
-        ##self.flt_ph = np.array(ph)                # relative height of peak
-        self.time = []     # a narray
-        self.data = np.array(args[0]) if len(args) > 0 else np.array([])
-        self.extr = {'min': [] , 'max': []} # local_max (peaks) only index
+
+        # Filter - th - Threshold
+        try :
+            if not th :
+                self.flt_th = False
+            elif np.ndim(th) == 0 :
+                # only one number, so min of all extrema
+                self.flt_th = [
+                    [th, np.Inf],
+                    [th, np.Inf]]
+            elif np.ndim(th) == 1:
+                # min and max of all extrema
+                self.flt_th = [
+                    [th[0], th[1]],
+                    [th[0], th[1]]]
+            elif np.ndim(th) == 2:
+                # min and max of each type extrema
+                self.flt_th = [
+                    [th[0][0], th[0][1]],
+                    [th[0][1], th[1][1]]]
+        except:
+            self.flt_th = False
+            print("Threshold dimension error!")
         
-        self.extr_rm = {'min':[] ,'max':[]}
-        
-        self.analyseTime = 0  # for dev , analyse() consume time.
-        self.adp = adp
+        # logs
         self.log_flt_pd = []
         self.log_flt_ph = []
         self.log_rs = [[],[]]
-        #self.threshold = th if len(th)>0 else []
-        self.cv=[]
+        #self.flt_th = th if len(th)>0 else []
         self.log_std=[[],[]]
-        self.measureTime = measureTime
+        
         self.loop_count=0
         
-        self.preExtr = { 'i': 0, 'v': 0}
-        self.blkExtr = { 'i': 0, 'v': 0}
+        #self.preExtr = { 'i': 0, 'v': 0}
+        #self.blkExtr = { 'i': 0, 'v': 0}
         #if measureTime :
             ##import time
             #time = __import__('time')
@@ -100,8 +102,12 @@ class PeakDetector():
         if len(self.data) >= 3 :
             self.analyse()
     
-    def analyse(self):
-        """ Peak detect function. only call from class members. """
+    def analyse(self, n=0):
+        """ Peak detect function. only call from class members.
+
+        Args:
+            n   - Start scan location of .data .
+        """
         
         if self.measureTime :
             self.analyseTime = time.monotonic()
@@ -110,13 +116,14 @@ class PeakDetector():
             self.log_flt_pd = []
             self.log_flt_ph = []
 
-        if self.preExtr['i'] == 0 :     # && self.tmpLocal.max.v.length == 0
-            self.preExtr['v'] = self.data[0]  # tmp_local_max
-            self.preExtr['i'] = 0        # tmp_local_max
+        #if self.preExtr['i'] == 0 :     # && self.tmpLocal.max.v.length == 0
+            #self.preExtr['v'] = self.data[0]  # tmp_local_max
+            #self.preExtr['i'] = 0        # tmp_local_max
 
-            self.blkExtr['v'] = self.data[0]  # block_local_max
-            self.blkExtr['i'] = 0        # block_local_max
-
+            #self.blkExtr['v'] = self.data[0]  # block_local_max
+            #self.blkExtr['i'] = 0        # block_local_max
+        preExtr = { 'i': 0, 'v': 0}
+        blkExtr = { 'i': 0, 'v': 0}
             
         # Determine first is max or min
         dataBlock = self.data[0:self.flt_pd]  # should check boundary in other language.
@@ -125,7 +132,7 @@ class PeakDetector():
         
         
         lastExtr = {'min': 0, 'max' : 0}
-        n=0                 # for index of self.data
+        
         dataLen = len(self.data)
         #find_max = True    # find min first may ignore code for first max and flt_ph
         while n < dataLen -1 :
@@ -150,25 +157,25 @@ class PeakDetector():
             self.log_std[1].append(np.std(self.data[n: n +10]))
             
             # Get extrema
-            self.blkExtr['i'] = np.argmax(dataBlock) if find_max else np.argmin(dataBlock)
-            self.blkExtr['v'] = dataBlock[self.blkExtr['i']]
+            blkExtr['i'] = np.argmax(dataBlock) if find_max else np.argmin(dataBlock)
+            blkExtr['v'] = dataBlock[blkExtr['i']]
 
             # Compare last block, move on or save extrema then find opposite extrema.
-            if (self.blkExtr['v'] >= self.preExtr['v'] if find_max else
-                self.blkExtr['v'] <= self.preExtr['v'] ):
-                self.preExtr['i'] = self.blkExtr['i'] + n 
-                self.preExtr['v'] = self.blkExtr['v']
+            if (blkExtr['v'] >= preExtr['v'] if find_max else
+                blkExtr['v'] <= preExtr['v'] ):
+                preExtr['i'] = blkExtr['i'] + n
+                preExtr['v'] = blkExtr['v']
                 n += self.flt_pd
-            elif self.preExtr['i'] - lastExtr['max' if find_max else 'min'] < self.flt_pd :
+            elif preExtr['i'] - lastExtr['max' if find_max else 'min'] < self.flt_pd :
                 # If extrema near last opposite extrema may case two opposite
                 # extrema short then min distance (flt_pd), so check it.
-                self.preExtr['i'] = self.blkExtr['i'] + n
-                self.preExtr['v'] = self.blkExtr['v']
+                preExtr['i'] = blkExtr['i'] + n
+                preExtr['v'] = blkExtr['v']
                 n += self.flt_pd
             else :
-                self.extr['max' if find_max else 'min'].append(self.preExtr['i'])
-                n = self.preExtr['i']
-                lastExtr['max' if find_max else 'min'] = self.preExtr['i']
+                self.extr['max' if find_max else 'min'].append(preExtr['i'])
+                n = preExtr['i']
+                lastExtr['max' if find_max else 'min'] = preExtr['i']
 
                 #if loop_count > 5000 :
                     #break
@@ -178,7 +185,7 @@ class PeakDetector():
                     
                 find_max = not find_max
         # while data seq
-        #self.extr['max' if find_max else 'min'].append(self.preExtr['i'])
+        #self.extr['max' if find_max else 'min'].append(preExtr['i'])
 
         
         # filters
@@ -229,18 +236,19 @@ class PeakDetector():
                             self.extr_rm[mm].append(self.extr[mm][n+shift[mm]])
 
         # filter for threshold
-        if self.threshold :
-            for extrType in range(2) : # use ['min', 'max'] ?
-                #for mm in range(2) :
-                    #if self.threshold[extrType][mm]:
-                extr = np.array(self.extr['min' if extrType == 0 else 'max'])
-                extr_rm = np.array(self.extr_rm['min' if extrType == 0 else 'max'], np.int32)
+        if self.flt_th :
+            # flt_th should be 2D array: [[min_low,min_up], [min_low,min_up]] .
+            for extrType in range(2) :
+                extrTypeStr = 'max' if extrType else 'min'
+                extr = np.array(self.extr[extrTypeStr])
+                extr_rm = np.array(self.extr_rm[extrTypeStr],
+                    np.int32)
                 extrData = np.array( self.data[extr] )
                 th_extr_rm = extr[ np.flatnonzero( np.logical_or(
-                    extrData < self.threshold[extrType][0],
-                    extrData > self.threshold[extrType][1])
+                    extrData < self.flt_th[extrType][0],
+                    extrData > self.flt_th[extrType][1])
                 )]
-                self.extr_rm['min' if extrType == 0 else 'max'] = (
+                self.extr_rm[extrTypeStr] = (
                     np.unique(np.concatenate((extr_rm,th_extr_rm)))  )
             
         # the last line of analyse(), record used time
