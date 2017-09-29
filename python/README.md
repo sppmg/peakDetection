@@ -18,7 +18,9 @@ The `PeakDetector_demo.py` just a demo, it will read demo data and plot result.
 ```py
 from PeakDetector import PeakDetector           # import PeakDetector
 peaks = PeakDetector(data, pd = 100, ph = 0.1)  # get PeakDetector object and analyse
-peaks.get('max.i')                              # get index of local maximum
+peaks.i                                         # get index of local maximum
+# Below is old method
+peaks.get('max.i')
 ```
 
 Note: Peak will detect after input data immediately, not at `.get()` command.
@@ -56,9 +58,37 @@ It will return a object. If you give data, the result will save in it's attribut
 |                         | th  | [[min_low,min_up],[min_low,min_up]] | th = [[-3,-2],[3,4]] |                |
 
 
-### Get result (attributes)
+### Get result
 
-Use `.get()` method. For example, below will get local maximum location.
+There are two method, `.get()` may remove later.
+(If you feel it batter, talk to me or give me a issue.)
+
+#### Use attributes
+
+For example, below will get local maximum location.
+
+```py
+peaks.i
+```
+
+| Vaild attr. | Return                                            |
+|-------------|---------------------------------------------------|
+| .i          | Index of max with filter. (short for .max_i)      |
+| .v          | Value of max with filter. (short for .max_v)      |
+| .max_i      | Index of max with filter.                         |
+| .max_v      | Value of max with filter.                         |
+| .min_i      | Index of min with filter.                         |
+| .min_v      | Value of min with filter.                         |
+| .orig_max_i | Non-filter (but apply pd) index of original data. |
+| .orig_max_v | Non-filter (but apply pd) value of original data. |
+| .rm_max_i   | Filter index of original data for max.            |
+| .rm_max_v   | Filter value of original data for max.            |
+| .rm_min_i   | Filter index of original data for min.            |
+| .rm_min_v   | Filter value of original data for min.            |
+
+#### Use `.get()` method
+
+For example, below will get local maximum location.
 Note, key is string.
 
 ```py

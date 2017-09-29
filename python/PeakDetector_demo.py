@@ -5,12 +5,12 @@ from PeakDetector import PeakDetector
 
 ####
 
-file = '../data/md_1.mat'  # mph_r = 0.01, mpd = 100/55  mpd = int(len(d[1])/100) , ph = 0.05 , pd = 1000 (連前面都找到)
+file = '../data/md_1.mat'  # ph = 0.05 , pd = 1000
 f = h5py.File(file,'r')
 d01 = np.array( f.get(list(f.keys() )[0]) ) # data in d[1]
 f.close()
 
-file = '../data/matlab_mtlb_1001_1200.mat' # mph_r = 2, mpd = 10 
+file = '../data/matlab_mtlb_1001_1200.mat' # ph = 2, pd = 10
 f = h5py.File(file,'r')
 d02 = np.array( f.get(list(f.keys() )[0]) )
 f.close()
@@ -26,9 +26,9 @@ f = h5py.File(file,'r')
 d05 = np.array( f.get('d/value') ) # ph = 200 , pd = 5
 f.close()
 
-file = '../data/MIT-BIH-203_MLII_0s-30s.hdf5' # ph = 2, pd = 10
+file = '../data/MIT-BIH-203_MLII_0s-30s.hdf5' # ph = 200 , pd = 5
 f = h5py.File(file,'r')
-d06 = np.array( f.get('d/value') ) # ph = 200 , pd = 5
+d06 = np.array( f.get('d/value') ) 
 f.close()
 
 
@@ -39,58 +39,34 @@ f.close()
 
 ####
 
-dataname = 'd7'
-demo_pd = 2
-demo_ph = 40
+dataname = 'd1'
+demo_pd = 1000
+demo_ph = 0.05
+demo_th = [[-1,-0.5],[-1,0.6]]
 show_rm = False
 
-fp = PeakDetector(d07[1], pd = demo_pd, ph = demo_ph)
-print('peak (max) numbers = ', len(fp.extr['max']))
-print('removed number (min,max) = ', (len(fp.get('rm.min')) , len(fp.get('rm.max')) ) )
-print('used time = ', fp.analyseTime)
+peaks = PeakDetector(d01[1], pd = demo_pd, ph = demo_ph, th = demo_th)
+print('peak (max) numbers = ', len(peaks.orig_max_i))
+print('removed number (min,max) = ', (len(peaks.rm_min_i) , len(peaks.rm_max_i) ) )
+print('used time = ', peaks.analyseTime)
 
 fig = plt.figure()
 plt.hold(True)
 
-# use time(d[0]) for x
-#plt.plot(d[0],fp.data)
-#plt.plot(d[0][fp.localMax],fp.data[fp.localMax],'+r',markersize=15)
-#plt.plot(d[0][fp.localMin],fp.data[fp.localMin],'+g',markersize=15)
-
-# use id for x
-#plt.plot(fp.data)
-#plt.plot(fp.localMax,fp.data[fp.localMax],'+r',markersize=15)
-#plt.plot(fp.localMin,fp.data[fp.localMin],'+g',markersize=15)
-#plt.plot(fp.localMin_rm,fp.data[fp.localMin_rm],'^k',markersize=5)
-
-# use get() api
-#print(fp.get('orig.max.i'))
-#print(fp.get('max.v'))
-#plt.subplot('311')
-plt.title('data = '+ dataname +', pd = ' + str(demo_pd)+', ph = '+str(demo_ph))
-plt.plot(fp.data)
-plt.plot(fp.get('max.i'),fp.get('max.v'),'+r',mew=2, ms=10)
-plt.plot(fp.get('min.i'),fp.get('min.v'),'+g',mew=2, ms=10)
+plt.title('data = '+ dataname +
+    ', pd = ' + str(demo_pd)+
+    ', ph = '+str(demo_ph)+
+    ', th = '+str(demo_th))
+    
+plt.plot(peaks.data)
+plt.plot(peaks.max_i, peaks.max_v,'+r',mew=2, ms=10)
+plt.plot(peaks.min_i, peaks.min_v,'+g',mew=2, ms=10)
 if show_rm :
-    plt.plot(fp.get('rm.max'),fp.data[fp.get('rm.max')],'^k',ms=5)
-    plt.plot(fp.get('rm.min'),fp.data[fp.get('rm.min')],'vk',ms=5)
+    plt.plot(peaks.rm_max_i, peaks.rm_max_v,'^k',ms=5)
+    plt.plot(peaks.rm_min_i, peaks.rm_min_v,'vk',ms=5)
 
-#plt.show()
-if len(fp.log_flt_ph) > 0 :
-    plt.subplot('312')
-    plt.plot(fp.log_rs[0],fp.log_rs[1] ) # np.log((1/fp.rs_log[1])))
-    plt.subplot('313')
-    plt.plot(fp.log_flt_pd)
 plt.show()
 
-
-#fp.clear()
-#print('after clear, data lenght = :', len(fp.data))
-
-#print('len = ',len(fp.localMax_rm))
-#tmp=[]
-#for n in range(1,len(fp.localMax_rm)) :
-    ##print(fp.localMax_rm[n-1])
-    #tmp.append(fp.localMax_rm[n] - fp.localMax_rm[n-1])
-#tmp.sort()
-#print(tmp)
+print('Before clear, data lenght = :', len(peaks.data))
+peaks.clear()
+print('After clear, data lenght = :', len(peaks.data))

@@ -40,13 +40,13 @@ class PeakDetector():
         self.extr = {'min': [] , 'max': []} # index of data for extrema
         self.extr_rm = {'min':[] ,'max':[]} # index of data for removed extrema
         
-        self.analyseTime = 0  # for dev , analyse() consume time.
+        self.analyseTime = 0  # analyse() consume time.
         self.measureTime = measureTime
         
         self.adp = adp
 
-        # filter - pd - Peak Distance
-        self.flt_pd = int(pd) if pd > 0 else 1      # minimum distance of peak
+        # filter - pd - Peak Distance (minimum)
+        self.flt_pd = int(pd) if pd > 0 else 1
 
         # Filter - ph - relative Peak Height
         try :
@@ -87,13 +87,10 @@ class PeakDetector():
         self.log_flt_pd = []
         self.log_flt_ph = []
         self.log_rs = [[],[]]
-        #self.flt_th = th if len(th)>0 else []
         self.log_std=[[],[]]
         
         self.loop_count=0
         
-        #self.preExtr = { 'i': 0, 'v': 0}
-        #self.blkExtr = { 'i': 0, 'v': 0}
         #if measureTime :
             ##import time
             #time = __import__('time')
@@ -149,9 +146,7 @@ class PeakDetector():
             if n + self.flt_pd > dataLen :
                 dataBlock = self.data[n:]
             else :
-                #print('block from ', n , ' to ',n+ self.flt_pd)
                 dataBlock = self.data[n: n + self.flt_pd ]
-                #print('block len = ', len(dataBlock))
 
             self.log_std[0].append(n)
             self.log_std[1].append(np.std(self.data[n: n +10]))
@@ -311,6 +306,7 @@ class PeakDetector():
         if len(data) > 0 :
             self.data = np.array(data)
             self.analyse()
+            
     def append(self, data) :
         """ Append new data to original data.
 
@@ -347,3 +343,53 @@ class PeakDetector():
             'min.v'      : lambda : self.data[np.setdiff1d(self.extr['min'], self.extr_rm['min'])]
             }
         return case.get(act, lambda : [])()
+
+    # i,v == max.i , max.v
+    @property
+    def i(self) :
+        return np.setdiff1d(self.extr['max'], self.extr_rm['max'])
+    @property
+    def v(self) :
+        return self.data[np.setdiff1d(self.extr['max'], self.extr_rm['max'])]
+
+    # max i,v
+    @property
+    def max_i(self) :
+        return np.setdiff1d(self.extr['max'], self.extr_rm['max'])
+    @property
+    def max_v(self) :
+        return self.data[np.setdiff1d(self.extr['max'], self.extr_rm['max'])]
+
+    # min i,v
+    @property
+    def min_i(self) :
+        return np.setdiff1d(self.extr['min'], self.extr_rm['min'])
+    @property
+    def min_v(self) :
+        return self.data[np.setdiff1d(self.extr['min'], self.extr_rm['min'])]
+
+    # orig i for min, max
+    @property
+    def orig_max_i(self) :
+        return self.extr['max']
+    @property
+    def orig_min_i(self) :
+        return self.extr['min']
+
+    # rm_max i,v
+    @property
+    def rm_max_i(self) :
+        return self.extr_rm['max']
+    @property
+    def rm_max_v(self) :
+        return self.data[self.extr_rm['max']]
+
+    # rm_min i,v
+    @property
+    def rm_min_i(self) :
+        return self.extr_rm['min']
+    @property
+    def rm_min_v(self) :
+        return self.data[self.extr_rm['min']]
+
+    
