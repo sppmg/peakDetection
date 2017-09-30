@@ -3,7 +3,11 @@ import matplotlib.pyplot as plt
 import h5py
 from PeakDetector import PeakDetector
 
-####
+### Read data .
+# There are few test date. .mat has a variable named 'd',
+# it's 2D array, time and value.
+# hdf5 variable is 'd/value' , a 1D array.
+###
 
 file = '../data/md_1.mat'  # ph = 0.05 , pd = 1000
 f = h5py.File(file,'r')
@@ -37,26 +41,30 @@ f = h5py.File(file,'r')
 d07 = [[],np.array( f.get(list(f.keys() )[0]))[0]]
 f.close()
 
-####
+# ------ Finish read data ---------
 
-dataname = 'd1'
+# Set variables for title of figure
+dataname = 'd1'     # It's only for title of figure.
 demo_pd = 1000
 demo_ph = 0.05
 demo_th = [[-1,-0.5],[-1,0.6]]
-show_rm = False
+show_rm = False     # True / False
 
 peaks = PeakDetector(d01[1], pd = demo_pd, ph = demo_ph, th = demo_th)
+
 print('peak (max) numbers = ', len(peaks.orig_max_i))
 print('removed number (min,max) = ', (len(peaks.rm_min_i) , len(peaks.rm_max_i) ) )
-print('used time = ', peaks.analyseTime)
+print('consume time = ', peaks.analyseTime)
 
+
+# Plot peaks information .
 fig = plt.figure()
 plt.hold(True)
 
 plt.title('data = '+ dataname +
     ', pd = ' + str(demo_pd)+
-    ', ph = '+str(demo_ph)+
-    ', th = '+str(demo_th))
+    ', ph = ' + str(demo_ph)+
+    ', th = ' + str(demo_th))
     
 plt.plot(peaks.data)
 plt.plot(peaks.max_i, peaks.max_v,'+r',mew=2, ms=10)
