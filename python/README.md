@@ -19,8 +19,13 @@ The `PeakDetector_demo.py` just a demo, it will read demo data and plot result.
 from PeakDetector import PeakDetector           # import PeakDetector
 peaks = PeakDetector(data, pd = 100, ph = 0.1)  # get PeakDetector object and analyse
 peaks.i                                         # get index of local maximum
-# Below is old method
-peaks.get('max.i')
+
+# Plot data with local maximum marker.
+import matplotlib.pyplot as plt
+plt.hold(True)
+plt.plot(peaks.data)
+plt.plot(peaks.i, peaks.v,'+r',mew=2, ms=10)
+plt.show()
 ```
 
 Note: Peak will detect after input data immediately, not at `.get()` command.
@@ -60,16 +65,12 @@ It will return a object. If you give data, the result will save in it's attribut
 
 ### Get result
 
-There are two method, `.get()` may remove later.
-(If you feel it better, talk to me or give me a issue.)
-
-#### Use attributes
-
-For example, below will get local maximum location.
+Use dot syntax. For example, below will get local maximum location.
 
 ```py
 peaks.i
 ```
+Vaild attributes:
 
 | Vaild attr. | Return                                            |
 |-------------|---------------------------------------------------|
@@ -86,33 +87,11 @@ peaks.i
 | .rm_min_i   | Filter index of original data for min.            |
 | .rm_min_v   | Filter value of original data for min.            |
 
-#### Use `.get()` method
-
-For example, below will get local maximum location.
-Note, key is string.
-
-```py
-peaks.get('max.i')
-```
-
-| Vaild key    | Return                                            |
-|--------------|---------------------------------------------------|
-| 'max.i'      | Index of max with filter.                         |
-| 'max.v'      | Value of max with filter.                         |
-| 'min.i'      | Index of min with filter.                         |
-| 'min.v'      | Value of min with filter.                         |
-| 'orig.max.i' | Non-filter (but apply pd) index of original data. |
-| 'orig.max.v' | Non-filter (but apply pd) value of original data. |
-| 'rm.max.i'   | Filter index of original data for max.            |
-| 'rm.max.v'   | Filter value of original data for max.            |
-| 'rm.min.i'   | Filter index of original data for min.            |
-| 'rm.min.v'   | Filter value of original data for min.            |
 
 ### Method list
 
 | Method        | Describe                                                                   |
 |---------------|----------------------------------------------------------------------------|
-| .get(key)     | Get data. Vaild key list in above table.                                   |
 | .update(data) | Update data in PeakDetector object. It's will detect new data immediately. |
 | .clear()      | Clear all information in the PeakDetector object.                          |
 

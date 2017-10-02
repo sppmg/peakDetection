@@ -323,27 +323,12 @@ class PeakDetector():
         """
         self.__init__()
 
-    def get(self, act='max.v') :
-        """ Get peak detection result.
 
-        Arg :       A string. Vaild string please check code or manual.
-        Return :    1D numpy array. Content depend on arg.
-        """
 
-        case = {
-            'orig.max.i' : lambda : self.extr['max'] ,
-            'orig.min.i' : lambda : self.extr['min'] ,
-            'rm.max.i'   : lambda : self.extr_rm['max'] ,
-            'rm.max.v'   : lambda : self.data[self.extr_rm['max']] ,
-            'rm.min.i'   : lambda : self.extr_rm['min'] ,
-            'rm.min.v'   : lambda : self.data[self.extr_rm['min']] ,
-            'max.i'      : lambda : np.setdiff1d(self.extr['max'], self.extr_rm['max']),
-            'max.v'      : lambda : self.data[np.setdiff1d(self.extr['max'], self.extr_rm['max'])],
-            'min.i'      : lambda : np.setdiff1d(self.extr['min'], self.extr_rm['min']),
-            'min.v'      : lambda : self.data[np.setdiff1d(self.extr['min'], self.extr_rm['min'])]
-            }
-        return case.get(act, lambda : [])()
-
+    # -----------------------
+    # Read attribute or information of extrema.
+    # -----------------------
+    
     # i,v == max.i , max.v
     @property
     def i(self) :
@@ -392,4 +377,7 @@ class PeakDetector():
     def rm_min_v(self) :
         return self.data[self.extr_rm['min']]
 
+
+
+    # Read flt_*
     
