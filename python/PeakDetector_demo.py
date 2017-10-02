@@ -9,12 +9,12 @@ from PeakDetector import PeakDetector
 # hdf5 variable is 'd/value' , a 1D array.
 ###
 
-file = '../data/md_1.mat'  # ph = 0.05 , pd = 1000
+file = '../doc/data/md_1.mat'  # ph = 0.05 , pd = 1000
 f = h5py.File(file,'r')
 d01 = np.array( f.get(list(f.keys() )[0]) ) # data in d[1]
 f.close()
 
-file = '../data/matlab_mtlb_1001_1200.mat' # ph = 2, pd = 10
+file = '../doc/data/matlab_mtlb_1001_1200.mat' # ph = 2, pd = 10
 f = h5py.File(file,'r')
 d02 = np.array( f.get(list(f.keys() )[0]) )
 f.close()
@@ -25,18 +25,18 @@ d03 = [[],np.array([0, 6, 25, 20, 15, 8, 15, 6, 0, 6, 0, -5, -15, -3, 4, 10, 8, 
 d04 = [[],np.array([1, 1, 1.1, 1, 0.9, 1, 1, 1.1, 1, 0.9, 1, 1.1, 1, 1, 0.9, 1, 1, 1.1, 1, 1, 1, 1, 1.1, 0.9, 1, 1.1, 1, 1, 0.9, 1, 1.1, 1, 1, 1.1, 1, 0.8, 0.9, 1, 1.2, 0.9, 1, 1, 1.1, 1.2, 1, 1.5, 1, 3, 2, 5, 3, 2, 1, 1, 1, 0.9, 1, 1, 3, 2.6, 4, 3, 3.2, 2, 1, 1, 0.8, 4, 4, 2, 2.5, 1, 1, 1])]
 
 
-file = '../data/MIT-BIH-200_MLII_0s-30s.hdf5' # ph = 2, pd = 10
+file = '../doc/data/MIT-BIH-200_MLII_0s-30s.hdf5' # ph = 2, pd = 10
 f = h5py.File(file,'r')
 d05 = np.array( f.get('d/value') ) # ph = 200 , pd = 5
 f.close()
 
-file = '../data/MIT-BIH-203_MLII_0s-30s.hdf5' # ph = 200 , pd = 5
+file = '../doc/data/MIT-BIH-203_MLII_0s-30s.hdf5' # ph = 200 , pd = 5
 f = h5py.File(file,'r')
 d06 = np.array( f.get('d/value') ) 
 f.close()
 
 
-file = '../data/matlab_saturatedData.mat' # ph = 2, pd = 40
+file = '../doc/data/matlab_saturatedData.mat' # ph = 2, pd = 40
 f = h5py.File(file,'r')
 d07 = [[],np.array( f.get(list(f.keys() )[0]))[0]]
 f.close()
