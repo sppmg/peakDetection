@@ -50,7 +50,7 @@ demo_ph = 0.05
 demo_th = [[-1,-0.5],[-1,0.6]]
 show_rm = False     # True / False
 
-peaks = PeakDetector(d01[1], pd = demo_pd, ph = demo_ph, th = demo_th)
+peaks = PeakDetector(d01[1], pd = demo_pd, ph = demo_ph, th = demo_th, measureTime = True )
 
 print('peak (max) numbers = ', len(peaks.orig_max_i))
 print('removed number (min,max) = ', (len(peaks.rm_min_i) , len(peaks.rm_max_i) ) )

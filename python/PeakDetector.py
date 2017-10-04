@@ -1,6 +1,4 @@
 import numpy as np
-import time
-#from scipy import stats
 
 class PeakDetector():
     """ A peak detect object base on local maximum and local minimum.
@@ -12,7 +10,7 @@ class PeakDetector():
     Args:
         *args   - for data, a 1D array/list (Only use args[0] for data).
         pd      - Peak Distance. The minimum distance of same type extrema (eg.
-                max with max).
+                max with max). The unit is data number, so it's integer.
         ph      - Peak Height relatively. It's difference height of neighboring
                 opposite extrema (eg. max with min).
                 Ignore or set to False to turn off this option.
@@ -30,11 +28,12 @@ class PeakDetector():
         flt_*   - * can be pd, ph, th, etc. record all filter.
         
     """
+    time = 0
     
     def __init__(self, *args, pd = 2, ph = False, th= False, adp = False ,
-        measureTime = True ):
+        measureTime = False ):
             
-        self.time = []     # a narray
+        #self.time = []     # a narray
         self.data = np.array(args[0]) if len(args) > 0 else np.array([])
         
         self.extr = {'min': [] , 'max': []} # index of data for extrema
@@ -90,11 +89,10 @@ class PeakDetector():
         self.log_std=[[],[]]
         
         self.loop_count=0
-        
-        #if measureTime :
-            ##import time
-            #time = __import__('time')
-            #print('hi',time.monotonic())
+
+        if self.measureTime :
+            __class__.time = __import__('time')
+            print('hi',__class__.time.monotonic())
         
         if len(self.data) >= 3 :
             self.analyse()
@@ -107,18 +105,12 @@ class PeakDetector():
         """
         
         if self.measureTime :
-            self.analyseTime = time.monotonic()
+            self.analyseTime = __class__.time.monotonic()
         if self.adp :
             self.flt_ph = 1
             self.log_flt_pd = []
             self.log_flt_ph = []
 
-        #if self.preExtr['i'] == 0 :     # && self.tmpLocal.max.v.length == 0
-            #self.preExtr['v'] = self.data[0]  # tmp_local_max
-            #self.preExtr['i'] = 0        # tmp_local_max
-
-            #self.blkExtr['v'] = self.data[0]  # block_local_max
-            #self.blkExtr['i'] = 0        # block_local_max
         preExtr = { 'i': 0, 'v': 0}
         blkExtr = { 'i': 0, 'v': 0}
             
@@ -248,55 +240,13 @@ class PeakDetector():
             
         # the last line of analyse(), record used time
         if self.measureTime :
-            self.analyseTime = time.monotonic() - self.analyseTime
+            self.analyseTime = __class__.time.monotonic() - self.analyseTime
 
     def adaptive(self, find_max,n) :
         """ adapt pd, ph ,etc. """
         
         return # didn't finish
-        # may use ordinary least squares
-        
-        
-        y = self.data[n:n+10]
-        x = np.array(range(len(y)))
-        slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
-        r_2 = r_value**2
-        self.log_rs[0].append(n)
-        self.log_rs[1].append(r_2)
-        
-        #self.flt_pd = r_2* len(self.data)*0.1
-        #if self.flt_pd < 3 :
-            #self.flt_pd = 3
-        #else :
-            #self.flt_pd = int(self.flt_pd)
 
-        #self.log_flt_pd.append(self.flt_pd)
-        
-        #if self.std[1][-1] > 0 :
-            ## ok 
-            ## self.flt_pd = np.log( 1/ self.log_std[-1]) * len(self.data)*0.01
-            #if len(self.extr['max' if find_max else 'min']) > 2 :
-                #peak_dst_avg = np.mean(np.diff((self.extr['max' if find_max else 'min'][-4:])))
-            #else :
-                #peak_dst_avg = 0
-                
-            #self.flt_pd = np.log( 1/ np.mean(self.log_std[1][-3:]))# * peak_dst_avg * 0.5
-            #if self.flt_pd < 3 :
-                #self.flt_pd = 3
-            #else :
-                #self.flt_pd = int(self.flt_pd)
-        
-        #self.log_flt_pd.append(self.flt_pd)
-        
-        #def cv(d) :
-            #return np.std(d)/np.mean(d)
-            
-        #if len(self.localMax) > 1 :
-            #tmp_cond = cv(self.data[self.localMax[-5:-1]])
-            #if self.data[self.localMax[-1]] > tmp_cond :
-                #self.flt_ph *= 1.5
-            #else :
-                #self.flt_ph *= 0.5
             
         
     def update(self, data) :
