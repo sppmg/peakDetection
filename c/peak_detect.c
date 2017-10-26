@@ -20,10 +20,10 @@ typedef struct Extrema_info {
 
 struct Filters {
     unsigned long pd ;
-    unsigned char ph_num ; // : 2; // 0 ~ 2
-    double *ph ;
-    unsigned char th_num ;//: 2; // 0 ~ 4
-    double *th ;
+    unsigned char ph_num : 2; // 0 ~ 2
+    double ph[2] ;
+    unsigned char th_num : 2; // 0 ~ 4
+    double th[4] ;
 };
 
 // mark removed extrema in filter ph. (inline to reduce source)
@@ -40,8 +40,6 @@ void filter_ph_mark_rm(List *rm_max, unsigned long i_max,
         list_data_append(rm_min, rm_min_last) ;
     }
 }
-
-
 
 Extrema_info peak_detect(double *data, unsigned long dataLen, struct Filters flt){
     List* rec_max = new_slist();
@@ -153,8 +151,9 @@ Extrema_info peak_detect(double *data, unsigned long dataLen, struct Filters flt
     } // end filter for ph
 
 
-
+    // ------------------------------------------
     // finish filters, export list to return type.
+    // ------------------------------------------
     
     Extrema_info extrema_info = {
         .max_i_len = 0 ,
@@ -214,8 +213,6 @@ Extrema_info peak_detect(double *data, unsigned long dataLen, struct Filters flt
     extrema_info.min_i = min_arr ;
     
 
-
-
     list_free(rec_max) ;
     list_free(rec_min) ;
     
@@ -226,13 +223,18 @@ Extrema_info peak_detect(double *data, unsigned long dataLen, struct Filters flt
 }
 
 int main(){
-    struct Filters flt = {.pd = 5, .ph_num = 1, .th_num = 0} ;
-    double a[] = {3.3} ;
-    flt.ph = a ;
+    struct Filters flt = {
+        .pd = 5,
+        .ph_num = 0,
+        .ph = {0, 3.2} ,  // member must <= 2
+        .th_num = 0
+    } ;
+        
 //     double data[] = { 2,4,5,6,1,25,6};
     double data[] = {1, 1, 1.1, 1, 0.9, 1, 1, 1.1, 1, 0.9, 1, 1.1, 1, 1, 0.9, 1, 1, 1.1, 1, 1, 1, 1, 1.1, 0.9, 1, 1.1, 1, 1, 0.9, 1, 1.1, 1, 1, 1.1, 1, 0.8, 0.9, 1, 1.2, 0.9, 1, 1, 1.1, 1.2, 1, 1.5, 1, 3, 2, 5, 3, 2, 1, 1, 1, 0.9, 1, 1, 3, 2.6, 4, 3, 3.2, 2, 1, 1, 0.8, 4, 4, 2, 2.5, 1, 1, 1} ;
     Extrema_info extrema_info = peak_detect(data, sizeof(data)/sizeof(data[0]), flt);
-    
+
+    // Print result.
     for(int i = 0; i < extrema_info.max_i_len; i++)
         printf("max[%d] = %u\n",i ,extrema_info.max_i[i]);
     for(int i = 0; i < extrema_info.min_i_len; i++)
