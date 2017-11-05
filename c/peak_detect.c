@@ -27,23 +27,36 @@ struct Filters {
     double th[4] ;
 };
 
-// mark removed extrema in filter ph. (use macro to reduce source)
+#define dbg_ph_printf(msg) printf("dbg:%s\ti_x=%lu, i_n=%lu, df_l=%g, df_h=%g\n",msg ,i_max ,i_min, extrDiff_lowSide, extrDiff_highSide);
 
-// #define filter_ph_mark_rm(rm_max, i_max, rm_min, i_min) if(rm_max_last != i_max){rm_max_last = i_max ;list_data_append(rm_max, rm_max_last) ;}if(rm_min_last != i_min){rm_min_last = i_min;list_data_append(rm_min, rm_min_last) ;}
- 
-void filter_ph_mark_rm(List *rm_max, unsigned long i_max,
-                              List *rm_min, unsigned long i_min){
-    static unsigned long rm_min_last = -1,
-                         rm_max_last = -1 ;
-    if(rm_max_last != i_max){
-        rm_max_last = i_max ;
-        list_data_append(rm_max, rm_max_last) ;
-    }
-    if(rm_min_last != i_min){
-        rm_min_last = i_min;
-        list_data_append(rm_min, rm_min_last) ;
-    }
+// mark removed extrema in filter ph.
+// (use macro to reduce source, remember use block{}.)
+#define filter_ph_mark_rm(rm_max, i_max, rm_min, i_min) \
+{ \
+    if(rm_max_last != i_max){\
+        rm_max_last = i_max ;\
+        list_data_append(rm_max, rm_max_last) ;\
+    }\
+    if(rm_min_last != i_min){\
+        rm_min_last = i_min;\
+        list_data_append(rm_min, rm_min_last) ;\
+    } \
 }
+ 
+// void filter_ph_mark_rm(List *rm_max, unsigned long i_max,
+//                               List *rm_min, unsigned long i_min){
+//     static unsigned long rm_min_last = -1,
+//                          rm_max_last = -1 ;
+//     printf("dbg:mark \ti_x=%lu, i_n=%lu, rm_max_last=%lu, rm_min_last=%lu\n",i_max, i_min, rm_max_last, rm_min_last);
+//     if(rm_max_last != i_max){
+//         rm_max_last = i_max ;
+//         list_data_append(rm_max, rm_max_last) ;
+//     }
+//     if(rm_min_last != i_min){
+//         rm_min_last = i_min;
+//         list_data_append(rm_min, rm_min_last) ;
+//     }
+// }
 
 
 
@@ -196,6 +209,18 @@ Extrema_info peak_detect(double *data, unsigned long dataLen, struct Filters flt
     
     // filter for flt.ph (relatively height of peak and around local minimum)
 
+    /* === algorithm ===
+     * For below extrema:
+     * 
+     * M[0]    M[1]    M[2]    M[3]
+     *     m[0]    m[1]    m[2]
+     * 
+     * extrDiff = M - m
+     * extrDiff_lowSide for M[1] = M[1] - m[0]
+     * extrDiff_highSide for M[1] = M[1] - m[1]
+     * If extrDiff out of ph range, mark that 2 point.
+     */
+    
     if(flt.ph_num > 0){
         // chech max_num >= 1
 
@@ -206,9 +231,19 @@ Extrema_info peak_detect(double *data, unsigned long dataLen, struct Filters flt
         double extrDiff_lowSide, extrDiff_highSide ;
 
         unsigned long rm_min_last = -1, rm_max_last = -1 ;
+        unsigned long orig_max_i_len = list_data_total(rec_max) ;
+        
+        // determine first extrema and last extrema.
+        bool extrema_first_is_max = false, extrema_last_is_max = false ;
+        if(list_data_get(rec_max, 0) < list_data_get(rec_min, 0))
+            extrema_first_is_max = true ;
+        if( list_data_get(rec_max, orig_max_i_len -1) >
+            list_data_get(rec_min, list_data_total(rec_min) -1))
+            extrema_last_is_max = true ;
+        
         // if first extrema is max, check extrDiff_highSide and shift i_max
-        if(list_data_get(rec_max, 0) < list_data_get(rec_min, 0)){
-            extrDiff_highSide = data[list_data_get(rec_max, i_max)] - data[list_data_get(rec_min, i_min)];
+        if(extrema_first_is_max){
+            extrDiff_highSide = data[list_data_get(rec_max, 0)] - data[list_data_get(rec_min, 0)];
             
             if(extrDiff_highSide < flt.ph[0]){
                 filter_ph_mark_rm(rm_ph_max, 0, rm_ph_min, 0);
@@ -220,34 +255,38 @@ Extrema_info peak_detect(double *data, unsigned long dataLen, struct Filters flt
             i_min = 0 ;
         }
 
-        unsigned long orig_max_i_len = list_data_total(rec_max) ;
-
-        unsigned long i_max_len = list_data_get(rec_max, orig_max_i_len -1) <
-                            list_data_get(rec_min, list_data_total(rec_min) -1) ?
-                            orig_max_i_len : orig_max_i_len -1 ;
-
-        while(i_max < i_max_len){
+        // process middle extrDiff
+        // Note: In this while loop, i_min only a shift of i_max,
+        // shift was from "extrema_first_is_max" .
+        // Here use increase instead of shift by addition because it may faster.
+        unsigned long i_max_loop_end = extrema_last_is_max ?
+                            orig_max_i_len -1 : orig_max_i_len  ;
+        
+        while(i_max < i_max_loop_end){
             extrDiff_lowSide = data[list_data_get(rec_max, i_max)] - data[list_data_get(rec_min, i_min)];
             extrDiff_highSide = data[list_data_get(rec_max, i_max)] - data[list_data_get(rec_min, i_min + 1)];
             
             if(extrDiff_lowSide < flt.ph[0])
                 filter_ph_mark_rm(rm_ph_max, i_max, rm_ph_min, i_min);
             if(extrDiff_highSide < flt.ph[0])
-                filter_ph_mark_rm(rm_ph_max, i_max, rm_ph_min, i_min);
+                filter_ph_mark_rm(rm_ph_max, i_max, rm_ph_min, i_min+1);
 
             // extrDiff > ph max
             if(flt.ph_num == 2){
+                dbg_ph_printf("ph2")
                 if(extrDiff_lowSide > flt.ph[1])
                     filter_ph_mark_rm(rm_ph_max, i_max, rm_ph_min, i_min);
                 if(extrDiff_highSide > flt.ph[1])
-                    filter_ph_mark_rm(rm_ph_max, i_max, rm_ph_min, i_min);
+                    filter_ph_mark_rm(rm_ph_max, i_max, rm_ph_min, i_min+1);
             }
+            dbg_ph_printf("ew")
+            
             ++i_max;
             ++i_min;
         }
 
         // if last extrema is max, check extrDiff_lowSide
-        if(i_max == i_max_len){
+        if(extrema_last_is_max){
             extrDiff_lowSide = data[list_data_get(rec_max, i_max)] - data[list_data_get(rec_min, i_min)] ;
 
             if(extrDiff_lowSide < flt.ph[0])
@@ -258,7 +297,7 @@ Extrema_info peak_detect(double *data, unsigned long dataLen, struct Filters flt
         }
 
         
-        // end ph filter, merge rm mark  
+        // finish process ph filter, merge rm mark
         if(rm_max != NULL){
             List *rm_max_new = merge_lists_uniq(rm_max, rm_ph_max);
             list_free(rm_max) ;
@@ -428,7 +467,7 @@ int main(){
     struct Filters flt = {
         .pd = 5,
         .ph_num = 2,
-        .ph = {0, 3.3} ,  // member <= 2, bug {0, 3.3}
+        .ph = {0, 3.1} ,  // member <= 2, bug {0, 3.3}
         .th_num = 0 ,
         .th = {1}// {0.9,0.9,1,3}         // member <= 4 , != 3
     } ;
